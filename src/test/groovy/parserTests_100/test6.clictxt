@@ -1,0 +1,36 @@
+type= version, host= null, version = 1.0.10,   
+	nodes= 0, workers= 0, 
+	fixed IPs= [] 
+	emitParams= []
+	work method= null, work params=[], 
+	collect params= [],
+	finalise params= [],
+	outFile= null,
+	allocIps= []
+type= emit, host= null, version = 1.0.10,   
+	nodes= 2, workers= 1, 
+	fixed IPs= [127.0.0.3, 127.0.0.4] 
+	emitParams= [[int, int], [0, 100], [100, 200]]
+	work method= null, work params=[], 
+	collect params= [],
+	finalise params= [],
+	outFile= null,
+	allocIps= []
+type= work, host= null, version = 1.0.10,   
+	nodes= 2, workers= 4, 
+	fixed IPs= [] 
+	emitParams= []
+	work method= updateMethod, work params=[[int], [500]], 
+	collect params= [],
+	finalise params= [],
+	outFile= null,
+	allocIps= []
+type= collect, host= null, version = 1.0.10,   
+	nodes= 2, workers= 1, 
+	fixed IPs= [127.0.0.5, 127.0.0.6] 
+	emitParams= []
+	work method= null, work params=[], 
+	collect params= [],
+	finalise params= [],
+	outFile= Test6Results,
+	allocIps= []
