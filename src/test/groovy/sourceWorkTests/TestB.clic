@@ -1,0 +1,4 @@
+version 2.0.3
+emit -nodes 1 -workers 1  -f ./data/areas1000.loc
+work -n 1 -w 4 -m distance -p double!3.0 -f ./data/pois250.loc
+collect -n 1 -w 1 -f TestBResults

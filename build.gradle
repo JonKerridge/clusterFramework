@@ -1,0 +1,83 @@
+plugins {
+  id 'groovy'
+  id 'java-library'
+  id 'maven-publish'
+}
+
+group 'jonkerridge'
+version = '2.0.3'
+
+//version 2.0.2 had a number of small changes included, but no functional changes
+//version 2.0.3 removed specific interface specifications and replaced with Object
+
+// The build file assumes the existence of a gradle properties file containing the
+// user's name and key in a file called "user.home"/.github/gradle.properties
+String userDir = System.getProperty("user.home")
+String propertyFileName = "$userDir/.github/gradle.properties"
+File propsFile = new File(propertyFileName)
+Properties props = new Properties()
+props.load(propsFile.newDataInputStream())
+
+repositories {
+  mavenCentral()
+  mavenLocal()  // needed to load groovy_jcsp.1.1.9
+  maven { // to download the jonkerridge.groovy_jcsp library
+    name = "GitHubPackages"
+    url = "https://maven.pkg.github.com/JonKerridge/groovyJCSP"
+    credentials {
+      username = props.getProperty("gpr.user")
+      password = props.getProperty("gpr.key")
+    }
+  }
+  maven { // to download the cspforjava.jcsp library
+    name = "GitHubPackages"
+    url = "https://maven.pkg.github.com/CSPforJAVA/jcsp"
+    credentials {
+      username = props.getProperty("gpr.user")
+      password = props.getProperty("gpr.key")
+    }
+  }
+}
+
+dependencies {
+  implementation 'org.codehaus.groovy:groovy-all:3.0.24'
+//    implementation 'org.apache.groovy:groovy-all:4.0.21'
+  implementation 'cspforjava:jcsp:1.1.9'
+  implementation 'jonkerridge:groovy_jcsp:1.1.10'
+//    implementation 'org.codehaus.groovy:groovy-cli-picocli:3.0.18'
+  testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
+  testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.1'
+}
+
+test {
+  useJUnitPlatform()
+}
+
+
+task sourcesJar(type: Jar) {
+  from sourceSets.main.allSource
+  archiveClassifier.set("sources")
+}
+
+artifacts {
+  archives sourcesJar
+}
+
+publishing {
+  repositories {
+    maven {
+      name = "GitHubPackages"
+      url = "https://maven.pkg.github.com/JonKerridge/clusterFramework"
+      credentials {
+        username = props.getProperty("gpr.user")
+        password = props.getProperty("gpr.key")
+      }
+    }
+  }
+  publications {
+    ClusterFramework2(MavenPublication) {
+      from components.java
+      artifact sourcesJar
+    }
+  }
+}
