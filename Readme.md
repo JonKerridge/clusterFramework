@@ -253,3 +253,6 @@ The package identity is
 
 jonkerridge:cluster_framework:2.0.3
 
+An example of the use of the library is also available at 
+
+https://github.com/JonKerridge/cfExperiments
