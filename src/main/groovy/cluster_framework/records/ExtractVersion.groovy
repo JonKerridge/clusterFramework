@@ -5,10 +5,10 @@ class ExtractVersion {
     if (nature == "Net")
       return true
     else {
-      String repoName = "cluster_framework_2"
+      String packageName = VersionControl.packageName
       String userHome = System.getProperty("user.home")
-      String jarLocation = "${userHome}\\.m2\\repository\\jonkerridge\\${repoName}"
-      String gradleLocation = "${userHome}\\.gradle\\caches\\modules-2\\files-2.1\\jonkerridge\\${repoName}"
+      String jarLocation = "${userHome}\\.m2\\repository\\jonkerridge\\${packageName}"
+      String gradleLocation = "${userHome}\\.gradle\\caches\\modules-2\\files-2.1\\jonkerridge\\${packageName}"
       String folder = gradleLocation + "\\$version"
       if (new File(folder).isDirectory())
         return true

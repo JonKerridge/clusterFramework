@@ -67,7 +67,7 @@ publishing {
   repositories {
     maven {
       name = "GitHubPackages"
-      url = "https://maven.pkg.github.com/JonKerridge/clusterFramework"
+      url = "https://maven.pkg.github.com/JonKerridge/cluster-framework"
       credentials {
         username = props.getProperty("gpr.user")
         password = props.getProperty("gpr.key")
@@ -75,7 +75,8 @@ publishing {
     }
   }
   publications {
-    ClusterFramework2(MavenPublication) {
+    cluster_framework(MavenPublication) {
+      artifactId = 'cluster_framework'
       from components.java
       artifact sourcesJar
     }
