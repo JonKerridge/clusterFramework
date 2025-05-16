@@ -31,13 +31,15 @@ The following is the DSL for a simple system with no source data or worker data 
 
 
 There is 1 emit node using 2 workers (or cores).  The constructor for the Emit object 
-requires two int parameters.  The first worker get the values [0,100] and the second gets [100,200].
+requires two int parameters.  The first worker gets the values [0,100] and the second gets [100,200].
 There is one work cluster comprising 1 node and uses 4 cores (workers).  The method that is called in the 
 emitted object is called  *updateMethod*, and it uses the int parameter value [500].  The same parameter
 value is passed to all the workers.
+
 All parameters, in all cases,
-are passed as elements of a List so that any number and type of parameters can be passed as required. The
-collect cluster comprises a single node with one worker (core) process.  All the data processed by the 
+are passed as elements of a List so that any number and type of parameters can be passed as required. 
+
+The collect cluster comprises a single node with one worker (core) process.  All the data processed by the 
 application will be saved in a file called *Test3Results*.
 
 The following is the DSL specification for an application that uses both source and work data files.
@@ -56,6 +58,9 @@ The work node will get its data from the file *./data/pois5000.loc*.  The worker
 copy of the data file which each worker will access in a read only manner.  The associated *WorkDataInterface* 
 ensures this is mode of operation in the way that data is obtained from the shared work data.  Each node in the 
 work cluster will read the same file.
+
+*NOTE In Intellij the ./data folder is contained at the top level of the folder structure
+directly accessible from the project folder*
 
 ### Interfaces
 
@@ -240,6 +245,11 @@ The improvement in time will not be linear with the number of worker processes
 
 ### Library Availability
 
-The library, cluster_framework_2 is available as a downloadable package from this repository
+The library, cluster_framework is available as a downloadable package from 
 
-The Gradle identify is
+https://github.com/JonKerridge/clusterFramework
+
+The package identity is
+
+jonkerridge:cluster_framework:2.0.3
+
