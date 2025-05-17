@@ -1,0 +1,15 @@
+include "EmitWorkCollect.csp"
+include "TestEWCsystem.csp"
+
+assert (EWCsystem \ {|eTOwb, transferEW, rtsEmit, useEmit, rtrWork, wTOrb, rbTOw, wTOwb,
+                        rtsWork, useWork, rtrCollect,
+                        transferWC, cTOrb, rbTOc, cTOdc|}) 
+                        [T=(TestEWCsystem \ {|eTOw, wTOc, cData|}) 
+
+assert (EWCsystem \ {|eTOwb, transferEW, rtsEmit, useEmit, rtrWork, wTOrb, rbTOw, wTOwb,
+                        rtsWork, useWork, rtrCollect,
+                        transferWC, cTOrb, rbTOc, cTOdc|}) [F=(TestEWCsystem \ {|eTOw, wTOc, cData|}) 
+
+assert (EWCsystem \ {|eTOwb, transferEW, rtsEmit, useEmit, rtrWork, wTOrb, rbTOw, wTOwb,
+                        rtsWork, useWork, rtrCollect,
+                        transferWC, cTOrb, rbTOc, cTOdc|}) [FD=(TestEWCsystem \ {|eTOw, wTOc, cData|}) 

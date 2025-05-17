@@ -1,0 +1,16 @@
+dataN = 4
+emitNodes = 1   
+emitters = 1  
+workNodes = 1
+workers = 1
+collectNodes = 1    
+collectors = 1    
+datatype object = D.{1..emitNodes}.
+                    {1..emitters}.
+                    {1..dataN} | UT
+gen(D.n.e.d) = D.n.e.d+1
+--expected result used in DataCheck
+result = {D.n.e.d | n <-{1..emitNodes}, 
+                    e <- {1..emitters}, 
+                    d <- {1..dataN} }
+--print result

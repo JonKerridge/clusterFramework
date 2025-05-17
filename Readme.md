@@ -10,7 +10,7 @@ Additionally, a further two classes can be defined which
 define; source data than can be read in as source data for the application and
 data that can be incorporated into the processing stage of the application.
 
-The library has been compiled using Groovy 3 and Java 11
+The library has been compiled using Groovy 3 and Java 11.
 
 The goal of the library is to create a parallel processing structure which takes 
 an existing sequential application code and enables its parallelisation 
@@ -21,6 +21,11 @@ use an Interface definition to ensure correct interaction with the framework.
 
 Each cluster can comprise one or more nodes where a node is a multicore processor.  
 The user can specify the number of the cores that are to be allocated to the application.
+
+The parallel architecture created by the framework has a formal proof of correctness.
+The proof mechanism uses the FDR4 (https://cocotec.io/fdr/) refinement checking tool 
+for parallel systems.  The required process definitions can be found in the folder
+*cspmDefinitions*.
 
 The following is the DSL for a simple system with no source data or worker data requirements.
 
@@ -202,7 +207,7 @@ A node is invoked by a call to *NodeRun*.  The above example shows the invocatio
 loop-back mode where two IP address are required.  The first is the IP address of the host and the second is 
 the IP address of the node being created.  All nodes muxt have unique IP addresses.
 
-In the case of a real network then pnly one address is required, that of the host node.
+In the case of a real network then only one address is required, that of the host node.
 
 There is no need to ensure that all class files are required on all nodes.  Only the host node needs
 access to all class files.  The application automatically transfers the required class files round

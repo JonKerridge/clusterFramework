@@ -1,0 +1,96 @@
+include "Declarations.csp"
+include "Processes.csp"
+
+-- internal channels for emit cluster
+channel eTOwb: {1..emitNodes}. object
+a_eTOwb = {|eTOwb|}
+
+-- internal channels for collect cluster
+channel cTOrb: {1..collectNodes}.{1..collectors}
+--a_cTOrb = {|cTOrb|}
+channel rbTOc: {1..collectNodes}.
+                {1..collectors}.object
+--a_rbTOc = {|rbTOc|}
+channel cTOdc: object
+a_cTOdc = {|cTOdc|}
+
+a_collectors = {|cTOrb, rbTOc|}
+
+-- net transfer channel
+channel transferEC: {1..collectNodes}.object
+a_transferEC = {|transferEC|}
+
+-- net manager channels
+channel rtsEmit: {0..emitNodes}
+--a_rtsEmit = {|rtsEmit|}
+channel useEmit: {1..emitNodes}.{1..collectNodes}
+--a_useEmit = {|useEmit|}
+channel rtrCollect:{1..collectNodes}
+--a_rtrCollect = {|rtrCollect|}
+
+a_manager = {|rtsEmit, useEmit, rtrCollect|}
+
+-- Emit Cluster definition
+
+Emitters() = |||n:{1..emitNodes}, e:{1..emitters} @
+                Emitter(eTOwb, D.n.e.1, n, dataN)
+
+WriteBuffers() = |||n:{1..emitNodes} @
+                WriteBuffer(eTOwb, rtsEmit, useEmit, 
+                transferEC, n, emitters, collectNodes)
+
+EmitCluster() = 
+    Emitters() [|a_eTOwb|] WriteBuffers()
+
+-- Collect Cluster definition
+
+Collectors() = |||n:{1..collectNodes}, c:{1..collectors} @
+                Collector(cTOrb, rbTOc, cTOdc, n, c)
+
+ReadBuffers() = 
+    |||n:{1..collectNodes} @
+        ReadBuffer(cTOrb, rbTOc, transferEC, rtrCollect, 
+          n, collectors, emitNodes, <>, collectors)
+
+CollectCluster() = 
+    (ReadBuffers() 
+        [|a_collectors|]  
+    Collectors() )
+        [|a_cTOdc|] 
+    DataCheck(cTOdc, collectNodes * collectors, 
+                result, false)
+
+-- create initial queue for manager
+baseQueue = <1..collectNodes>
+-- 1 collector per node
+mQueue = baseQueue
+-- 2 collectors per node
+--mQueue = baseQueue ^ baseQueue
+--print mQueue
+
+-- ECsystem Definition
+ECsystem = (EmitCluster() 
+                [|a_transferEC|] 
+            CollectCluster()) 
+                [|a_manager|] 
+            Manager(rtsEmit, useEmit, 
+              rtrCollect, emitNodes, 
+              mQueue, collectNodes*collectors)
+
+-- Test System Definition
+TestSystem = finished ! true -> TestSystem
+
+assert ECsystem :[deadlock free]
+assert ECsystem :[divergence free]
+assert ECsystem :[deterministic]  
+
+assert (ECsystem \ {|eTOwb, transferEC, cTOdc, 
+                    rtsEmit, useEmit, rtrCollect, 
+                    cTOrb, rbTOc|}) [T=TestSystem
+assert (ECsystem \ {|eTOwb, transferEC, cTOdc, 
+                    rtsEmit, useEmit, rtrCollect, 
+                    cTOrb, rbTOc|}) [F=TestSystem
+assert (ECsystem \ {|eTOwb, transferEC, cTOdc, 
+                    rtsEmit, useEmit, rtrCollect, 
+                    cTOrb, rbTOc|}) [FD=TestSystem
+

@@ -1,0 +1,33 @@
+--include "Declarations.csp"
+--include "Processes.csp"
+
+-- above lines required if checking the model in this file
+-- the -- required for processing Refinement.csp
+
+channel eTOw: object
+a_eTOw = {|eTOw|}
+
+channel wTOc: object
+a_wTOc = {|wTOc|}
+
+channel cData: object
+a_cData = {|cData|}
+
+TestingSystem = finished ! true -> TestingSystem
+
+TestEWCsystem = ((TestEmitter (eTOw, D.1.1.1, dataN)
+                [|a_eTOw|]
+                TestWorker(eTOw, wTOc))
+                [|a_wTOc|]
+                TestCollector(wTOc, cData))
+                [|a_cData|]
+                DataCheck(cData,1,result, false)
+
+-- following commented out only for Refinement.csp
+--assert TestEWCsystem :[deadlock free]
+--assert TestEWCsystem :[deterministic]
+--assert TestEWCsystem :[divergence free]
+
+--assert (TestEWCsystem \ {|eTOw, wTOc, cData|}) [T=TestingSystem
+--assert (TestEWCsystem \ {|eTOw, wTOc, cData|}) [F=TestingSystem
+--assert (TestEWCsystem \ {|eTOw, wTOc, cData|}) [FD=TestingSystem

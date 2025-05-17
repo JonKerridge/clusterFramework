@@ -1,0 +1,233 @@
+
+Emitter(e2wbChan, D.n.e.x, nodeN, maxData) =
+-- e2wbChan used to send objects from Emitters to WriteBuffer in the same node
+-- nodeN index number fo the node in which Emitter resides
+-- maxData the limit value for x in
+-- D.n.e.x the generated data objects where, n is node index, e is emitter index
+-- and x is the specific object index
+  e2wbChan ! nodeN.D.n.e.x ->
+  if x == maxData then
+    e2wbChan ! nodeN.UT ->
+    SKIP
+  else 
+    Emitter(e2wbChan, gen(D.n.e.x), nodeN, maxData)
+
+TestEmitter(e2wChan, D.1.1.x, maxData) =
+  e2wChan ! D.1.1.x ->
+  if x == maxData then
+    e2wChan ! UT ->
+    SKIP
+  else
+    TestEmitter(e2wChan, gen(D.1.1.x), maxData)
+
+
+WriteBuffer(i2wbChan, rtsChan, useChan, transferChan, nodeN, nWriters, nReadingNodes) =
+-- i2wbChan used to communicate objects from internal processes to thie WriteBuffer
+-- rtsChan ready to send channel used to send node index to associated Manager
+-- useChan used to read node index of the reading node from associated manager
+-- transferChan used to send a data object to the ReadBuffer in an inputting node
+-- nodeN the index of this node in its cluster
+-- nWriters is the number of internal processes in the node
+-- nReadingNodes is the number of nodes in the reading cluster
+  if nWriters == 0 then
+    if nReadingNodes == 0 then -- UT sent to all reading nodes
+      rtsChan ! 0 ->   -- to terminate the manager
+      SKIP
+    else  -- send UT to each of the reading nodes
+      transferChan ! nReadingNodes.UT ->  -- nReadingNodes iterates the read node ids
+      WriteBuffer(i2wbChan, rtsChan, useChan, transferChan, nodeN, nWriters, nReadingNodes-1)
+  else
+    i2wbChan ? nodeN.o ->
+    if o == UT then
+      WriteBuffer(i2wbChan, rtsChan, useChan, transferChan, nodeN, nWriters-1, nReadingNodes)
+    else
+      rtsChan ! nodeN ->
+      useChan ? nodeN.readingNodeID ->
+      transferChan ! readingNodeID.o ->
+      WriteBuffer(i2wbChan, rtsChan, useChan, transferChan, nodeN, nWriters, nReadingNodes)  
+
+
+ReadBuffer(i2rbChan, rb2iChan, transferChan, rtrChan, nodeN, nInternals, nSendNodes, buffer, bufferMax) =
+-- i2rbChan used by the internal processes to send their index to ReadBuffer
+-- rb2iChan used to send data objects to the internal process that has just written its process index to 
+-- the ReadBuffer using the i2rbChan
+-- transferChan is used to read data objects from the a WriteBuffer in a node of the preceding cluster
+-- into the buffer which can hold up to one data object per internal process
+-- rtrChan used to send the node's index to the associated Manager, indicating another data object can be
+-- read using the transferChan
+-- nodeN is the node index of this ReadBuffer
+-- nInternals is the number of Internal processes (Work or Collector) in the node when reduced to zero
+-- indicates that all the Internal processes have been terminated
+-- nSendNodes is the number of nodes writing to this node, when reduced to zero
+-- indicates that all the sending nodes have terminated
+-- buffer the queue holding objects waiting to be processed, initially empty
+-- bufferMax the maximum size of the buffer, is equal to number of Internal processes
+  if nSendNodes == 0 then   -- all senders have terminated
+    if length(buffer) == 0 then   -- buffer is empty
+      if nInternals == 0 then  -- all local internal processes have been terminated
+        SKIP
+      else  
+        i2rbChan ? nodeN.internalID ->
+        rb2iChan ! nodeN.internalID.UT ->
+        ReadBuffer(i2rbChan, rb2iChan, transferChan, rtrChan, nodeN, nInternals-1, nSendNodes, buffer, bufferMax) 
+    else  -- terminating but still objects in buffer
+      i2rbChan ? nodeN.internalID ->
+      rb2iChan ! nodeN.internalID.head(buffer) ->
+      ReadBuffer(i2rbChan, rb2iChan, transferChan, rtrChan, nodeN, nInternals, nSendNodes, tail(buffer), bufferMax) 
+  else  --normal buffer operation as a queue
+    if length(buffer) == 0 then   -- can only accept Sender inputs
+      transferChan ? nodeN.o ->
+      if o == UT then   -- sender has terminated
+         ReadBuffer(i2rbChan, rb2iChan, transferChan, rtrChan, nodeN, nInternals, nSendNodes-1, buffer, bufferMax)
+      else -- put o into buffer
+        ReadBuffer(i2rbChan, rb2iChan, transferChan, rtrChan, nodeN, nInternals, nSendNodes, concat(<buffer,<o>>), bufferMax)   
+    else
+      if length(buffer) == bufferMax then  -- buffer is full wait for collector to request
+        i2rbChan ? nodeN.internalID ->
+        rb2iChan ! nodeN.internalID.head(buffer) ->
+        rtrChan ! nodeN ->
+        ReadBuffer(i2rbChan, rb2iChan, transferChan, rtrChan, nodeN, nInternals, nSendNodes, tail(buffer), bufferMax) 
+      else  -- normal operation choice of inputs allowed
+        ( transferChan ? nodeN.o ->
+        if o == UT then   -- sender has terminated
+          ReadBuffer(i2rbChan, rb2iChan, transferChan, rtrChan, nodeN, nInternals, nSendNodes-1, buffer, bufferMax)
+        else -- put o into buffer
+          ReadBuffer(i2rbChan, rb2iChan, transferChan, rtrChan, nodeN, nInternals, nSendNodes, concat(<buffer,<o>>), bufferMax)   
+        ) 
+        [] -- non-deterministic external choice
+        (
+        i2rbChan ? nodeN.internalID ->
+        rb2iChan ! nodeN.internalID.head(buffer) ->
+        rtrChan ! nodeN ->
+        ReadBuffer(i2rbChan, rb2iChan, transferChan, rtrChan, nodeN, nInternals, nSendNodes, tail(buffer), bufferMax) 
+        )
+
+
+Collector(c2rbChan, rb2cChan, c2dcChan, nodeN, internalN) =
+-- c2rbChan used to send index of Collector to the ReadBuffer within this node 
+-- that it can read a data object
+-- rb2cChan used by ReadBuffer to send a data object to this Collector
+-- c2dcChan used to send data object to the DataCheck process
+-- nodeN index of the node within the Collect cluster that contains this Collector
+-- internalN the index of this Collector within the node
+
+  c2rbChan ! nodeN.internalN ->
+  rb2cChan ? nodeN.internalN.o ->
+  c2dcChan ! o ->
+  if o == UT then
+    SKIP
+  else
+    Collector(c2rbChan, rb2cChan, c2dcChan, nodeN, internalN)
+
+
+TestCollector(w2cChan,c2dcChan) =
+  w2cChan ? o ->
+  c2dcChan ! o ->
+  if o == UT then
+    SKIP
+  else
+    TestCollector(w2cChan, c2dcChan)
+
+DataCheck(dataChan, nCollectors, expectedResult, completed) =
+-- dataChan used to read data objects from all the Collector processes in the Collect Cluster
+-- nCollectors is the total number of expected UT objects collectNodes * collectors
+-- expectedResult initialised to the data objects expected to be read from all the 
+-- Collector processes, each data object read causes that value to be removed from expectedResult
+-- completed initialised to false only becomes true when the exepectedResult set is empty
+--
+-- the DataCheck process can only terminate correctly if all the expected data objects 
+-- have been processed and removed from the expectedResult set, which is the only time
+-- completed can be set true
+
+  if (nCollectors == 0) then
+    if completed then
+      CollectEnd()
+    else
+      SKIP  -- it should never get here if it does the assertions will fail
+  else
+    dataChan ? o ->
+    if member(o, expectedResult) then
+      DataCheck(dataChan, nCollectors,  diff(expectedResult, {o}), false)
+    else  -- must be a UT
+      DataCheck (dataChan, nCollectors-1, expectedResult, empty(expectedResult))
+
+Worker(w2rbChan, rb2wChan, w2wbChan, nodeN, workerN ) =
+-- w2rbChan used to Worker index to the node's ReadBuffer
+-- rb2wChan used to send data object from ReadBuffer to Worker using the workerN just
+-- read by ReadBuffer from the w2rbChan
+-- w2wb used by the Worker to send processed data object the the node's WriteBuffer process
+-- nodeN the index of the node within the cluster
+-- workerN the index of the Worker process within the node.
+  w2rbChan ! nodeN.workerN ->
+  rb2wChan ? nodeN.workerN.o ->
+  if o == UT then 
+    w2wbChan ! nodeN.UT ->
+    SKIP
+  else
+    w2wbChan !nodeN.o ->  -- does nothing!!
+    Worker(w2rbChan, rb2wChan, w2wbChan, nodeN, workerN )
+
+TestWorker(e2wChan, w2cChan) =
+  e2wChan ? o ->
+  if o == UT then
+    w2cChan ! UT ->
+    SKIP
+  else
+    w2cChan ! o ->
+    TestWorker(e2wChan, w2cChan)
+
+Manager(rtsChan, useChan, rtrChan, nWriteEnds, mQueue, mQMax) = 
+-- rtsChan used to read node index from an associated WriteBuffer
+-- usedChan used to send a reading node's index from the internal queue to
+-- the WriteBuffer that has just sent its node index, 
+-- the index value is removed from the queue
+-- rtrChan used to send the node  index of a reading node the is 
+-- ready to read another data object, the index is added to the queue
+-- nWriteEnds is the number of WriteBuffer processes connected to the rtsChan
+-- mQueue the circular queue that holds the node index of nodes 
+-- that can read a data object.  It is initialised with the node indexes of
+-- all the reading nodes, such that each node index value is repeated the same number
+-- of times as there are internal processes in each node of the cluster that will
+-- read the data objects.  The node indices are repeated in sequence
+-- mQueue the Manager's internal queue
+-- mQMax is the maximum length of the mQueue and is equal to 
+-- the number of nodes in the reading cluster multiplied by the number of internal
+-- processes in each of the reading nodes
+
+  if nWriteEnds == 0 then --all the WriteBuffers have terminated
+    SKIP
+  else
+    if length(mQueue)  == mQMax then 
+      -- must read a rtsChan message and return Reading Node ID from queue
+      rtsChan ? writeNodeID ->
+      if writeNodeID == 0 then  --0 is the terminator
+        Manager(rtsChan, useChan, rtrChan, nWriteEnds-1, mQueue, mQMax)
+      else
+        useChan ! writeNodeID.head(mQueue) ->
+        Manager(rtsChan, useChan, rtrChan, nWriteEnds, tail(mQueue), mQMax)
+    else
+      if length(mQueue)  == 0 then   
+        -- queue is empty must wait for a Read Node to put its node id into queue
+        rtrChan ? readNodeID ->
+        Manager(rtsChan, useChan, rtrChan, nWriteEnds, concat(<mQueue, <readNodeID>>), mQMax )
+      else
+        -- queue is neither full nor empty can accept either input
+        (  
+        rtsChan ? writeNodeID ->
+        if writeNodeID == 0 then
+          Manager(rtsChan, useChan, rtrChan, nWriteEnds-1, mQueue, mQMax)
+        else
+          useChan ! writeNodeID.head(mQueue) ->
+          Manager(rtsChan, useChan, rtrChan, nWriteEnds, tail(mQueue), mQMax)
+        )
+        []
+        (
+          rtrChan ? readNodeID ->
+          Manager(rtsChan, useChan, rtrChan, nWriteEnds, concat(<mQueue, <readNodeID>>), mQMax)
+        )
+         
+
+-- channel and process used to model system termination, CollectEnd can only be called
+-- when DataCheck has terminated  correctly
+channel finished:Bool
+CollectEnd() =  finished!true -> CollectEnd()
