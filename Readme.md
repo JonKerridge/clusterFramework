@@ -144,6 +144,8 @@ This invokes a code called *HostRun* which has a single method called *invoke()*
 shows how a  DSL specification is transformed into a call of HostRun.  The application has two work cluster
  both of which use the same work data source file.  The emitted data is obtained from a source data file.
 
+**NOTE A directory (folder) called *data* must be at the top level in the project file structure**
+
 #### DSL - Test1111.clic
 
     version 2.0.3
