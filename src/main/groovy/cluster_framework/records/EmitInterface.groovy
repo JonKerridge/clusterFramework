@@ -47,10 +47,15 @@ interface EmitInterface <T> extends Serializable {
    *
    * The create method will use another constructor for the object that creates the data objects passed to
    * the rest of the process network.  The properties of the constructor will be created from
-   * data held within the base object instance created when the object was initially constructed.
+   * data held within the base object instance initialised when the object was initially constructed.
    *
-   * @param sourceData an object containing source data for the emitted objects or null otherwise
+   * If the application uses a source data file then the
+   *
+   * @param sourceData an object containing source data for the emitted objects, obtained
+   * from an object implementing the SourceDataInterface or null otherwise
    * @return A new instance of type T or null once all the data objects have been created
    */
   T create(Object sourceData)
+
+
 }

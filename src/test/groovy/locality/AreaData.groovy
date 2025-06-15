@@ -34,7 +34,9 @@ class AreaData implements  EmitInterface<AreaData> {
     double testDistance = p[0] as Double
     int dataMax = (workData as WorkDataInterface).getWorkDataSize()
     for ( i in 0 ..< dataMax){
-      Location poi = (workData as WorkDataInterface).getNextWorkData(i) as Location
+//      Location poi = (workData as WorkDataInterface).getNextWorkData(i) as Location
+      List poiData = workData.getFilteredWorkData(i, null)
+      Location poi = poiData[1]
       double distance = areaLocation.euclideanDistance(poi)
       if (distance <= testDistance) nearPoIs << poi
     }

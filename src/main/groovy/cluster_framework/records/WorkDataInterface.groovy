@@ -37,17 +37,28 @@ package cluster_framework.records
 interface WorkDataInterface <T> {
 
     /**
-     * The method that gets the next item of work data.
+     * This method gets the next item of work data having used the values
+     * in filterValues to ignore any work data items that do not satisfy the
+     * filter.
+     * The filterValue(s) will be obtained from the object implementing the
+     * EmitInterface using the getFilterValues method.
+     * If the work data does not need filtering then filterValues should be null.
      *
-     * @param index the subscript of the data item to be returned
-     * @return an object from the shared work data such that repeated calls will return the
-     * shared data in some user defined sequence
+     * @param index the subscript in the Work Data, from where the search will start
+     * @param filterValues  the value(s) used to undertake the filtering operation
+     * @return a List comprising [index, T], where index is the next subscript from
+     * which to start the next search and T is an object of type T that is being returned
+     * for processing.  T will be null when no more data is available.
+     *
+     * Note that this formulation is required so that the WorkData object does not have
+     * to retain state for the many proceses that are sharing access.
      */
-    T getNextWorkData(int index)
+
+    List getFilteredWorkData(int index, List filterValues)
 
     /**
      * To get the number of objects in the shared data so that the create method can
-     * iterate through them.
+     * iterate through them. Especially useful when the work data does not require filtering
      *
      * @return the number of objects in the shared work data structure
      */
