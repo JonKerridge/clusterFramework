@@ -11,6 +11,10 @@ version = '2.0.4'
 //version 2.0.3 many documentation additions plus made version control simpler
 //version 2.0.4 allowed the work data to be filtered before being returned for processing
 //              in a worker cluster by obtaining filter values from the incoming data
+//              also includes parameters in the collect class constructor
+//              and removed  output file name  option -f
+//              assuming the constructor parameter can be an output file name, the user has
+//              to write the file writing mechanism
 
 // The build file assumes the existence of a gradle properties file containing the
 // user's name and key in a file called "user.home"/.github/gradle.properties

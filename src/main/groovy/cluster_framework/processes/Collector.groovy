@@ -13,24 +13,21 @@ class Collector implements CSProcess{
   ChannelInput inputObject  // connects to ReadBuffer toInternalProcesses[internalIndex]
   int internalIndex, nodeIndex, clusterIndex
   // class associated with the collector that defines the collate and finalise methods
-  Class <?> collectClass // methods only no publicly accessible properties
-  String outFileName // name of file to which incoming objects will be written unchanged
+  Class <?> collectClass
+  List <List <String>> classParameters
   List <List <String>> collectParameters
   List <List <String>> finaliseParameters
 
 
   @Override
   void run() {
-    ObjectOutputStream outStream
-    if (outFileName != null ) {
-      String outFileString = "./${outFileName}-${nodeIndex}-${internalIndex}.out"
-      println "Collector [$clusterIndex, $nodeIndex, $internalIndex] writing to $outFileString"
-      File objFile = new File(outFileString)
-      outStream = objFile.newObjectOutputStream()
+    Class[] cArg = new Class[1]
+    cArg[0] = List.class
+    List classParameterValues = []
+    if (classParameters != null) {
+      classParameterValues = ExtractParameters.extractParams(classParameters[0], classParameters[1])
     }
-    else outStream = null
-
-    def collectInstance = collectClass.getDeclaredConstructor().newInstance()
+    def collectInstance = collectClass.getDeclaredConstructor(cArg).newInstance(classParameterValues)
 
     List collectParameterValues, finaliseParameterValues
     collectParameterValues = []
@@ -51,14 +48,9 @@ class Collector implements CSProcess{
       else { // process incoming data object
 //        print "Collect $internalIndex: "
         (collectInstance as CollectInterface).collate((object as EmitInterface), collectParameterValues)
-        if (outStream != null) outStream.writeObject(object)
       }
     } // running
     //call the finalise method if it exists and close the output stream
     (collectInstance as CollectInterface).finalise(finaliseParameterValues)
-    if (outStream != null) {
-      outStream.flush()
-      outStream.close()
-    }
   }
 }

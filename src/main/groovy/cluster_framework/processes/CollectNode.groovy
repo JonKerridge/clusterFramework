@@ -31,8 +31,13 @@ class CollectNode implements CSProcess{
     def objectChannelOutList = new ChannelOutputList(objectChannels)
     List <CSProcess> network = []
     for (i in 0 ..< nInternals) {
+      List <List <String>> classParameters
       List <List <String>> collectParameters
       List <List <String>> finaliseParameters
+      classParameters = [ // added in 2.0.4
+              structure[clusterIndex].classParameters[0],
+              structure[clusterIndex].classParameters[((nodeIndex * nInternals) + i) + 1]
+      ]
       collectParameters = [
           structure[clusterIndex].collectParameters[0],
 //up to 1.0.4          structure[clusterIndex].collectParameters[1]
@@ -53,7 +58,7 @@ class CollectNode implements CSProcess{
           collectClass: collectClass,
           collectParameters: collectParameters,
           finaliseParameters: finaliseParameters,
-          outFileName: structure[clusterIndex].outFileName
+          classParameters: classParameters
           )
     } // for nInternals
 

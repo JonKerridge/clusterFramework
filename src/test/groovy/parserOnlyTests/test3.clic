@@ -1,4 +1,4 @@
 version 2.0.4
 emit -nodes 1 -workers 2 -p int,int!0,100!100,200
 work -n 1 -w 4 -m updateMethod -p int!500
-collect -n 1 -w 1 -f Test3Results
+collect -n 1 -w 1 -p String!Test3Results

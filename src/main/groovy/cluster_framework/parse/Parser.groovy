@@ -59,7 +59,7 @@ class Parser {
   class CollectSpecification {
     @CommandLine.Option(names = ["-n", "-nodes"], description = "number of nodes") int nodes
     @CommandLine.Option(names = ["-w", "-workers"], description = "number of workers per nodeLoader") int workers
-    @CommandLine.Option( names = ["-f", "-file"]) String outFileName  // base name of object file to which collected records are written
+    @CommandLine.Option( names = "-p", split = "!") List<String> classParamString
     @CommandLine.Option( names = "-cp", split = "!") List<String> collectParamString  // parameters of the collect method, one for all collect processes
     @CommandLine.Option( names = "-fp", split = "!") List<String> finaliseParamString  // parameters of the finalise method, one for all collect processes
     @CommandLine.Parameters ( description =" IP address for each nodeLoader") List <String> nodeIPs
@@ -202,6 +202,11 @@ class Parser {
                 "Collect: Number of specified IPs must be same as number of nodes") )
               outcome = false
           int totalParamString = collect.nodes * collect.workers
+          if (collect.classParamString != null)
+            if (!checkValidity((collect.classParamString.size() == collect.nodes +1),
+                    "Collect: The class constructor must have ${(collect.nodes+1)} parameter strings; ${collect.classParamString.size()} supplied"))
+              outcome = false
+
           if (collect.collectParamString != null)
             if (!checkValidity((collect.collectParamString.size() == totalParamString +1),
                 "Collect: The collate method must have ${(totalParamString+1)} parameter strings; ${collect.collectParamString.size()} supplied"))
@@ -215,9 +220,14 @@ class Parser {
           parseRecord.nodes = collect.nodes
           parseRecord.workers = collect.workers
           parseRecord.version = version
-          parseRecord.outFileName = collect.outFileName // could be null
           if (collect.nodeIPs != null)
             collect.nodeIPs.each { parseRecord.fixedIPAddresses << it }
+          if (collect.classParamString != null)
+            collect.classParamString.each { String paramSpec ->
+              List<String> tokenizedParams
+              tokenizedParams = paramSpec.tokenize(',')
+              parseRecord.classParameters << tokenizedParams
+            }
           if (collect.collectParamString != null)
             collect.collectParamString.each { String paramSpec ->
               List<String> tokenizedParams

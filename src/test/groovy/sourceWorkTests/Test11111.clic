@@ -3,4 +3,4 @@ emit -nodes 1 -workers 1  -f ./data/areas1000.loc
 work -n 1 -w 1 -m distance -p double!3.0 -f ./data/pois250.loc
 work -n 1 -w 1 -m adjacent -p double!6.0 -f ./data/pois250.loc
 work -n 1 -w 1 -m remote -p double!12.0 -f ./data/pois250.loc
-collect -n 1 -w 1 -f ./data/Test11111Results
+collect -n 1 -w 1 -p String!./data/Test11111Results

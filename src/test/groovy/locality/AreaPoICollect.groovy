@@ -6,8 +6,11 @@ class AreaPoICollect implements CollectInterface<AreaData> {
 
   List <AreaData> allAreas
   List <Location> accessedPoIs
+  PrintWriter printWriter
 
-  AreaPoICollect(){
+  AreaPoICollect(List p){
+    String fileName = p[0]
+    printWriter = new PrintWriter(fileName)
     allAreas = []
     accessedPoIs = []
   }
@@ -22,6 +25,7 @@ class AreaPoICollect implements CollectInterface<AreaData> {
   @Override
   void collate(AreaData data, List params) {
     allAreas << data
+    printWriter.println "$data"
     data.nearPoIs.each{loc ->
       accessedPoIs << loc
     }
@@ -58,5 +62,8 @@ class AreaPoICollect implements CollectInterface<AreaData> {
     }
 
     println "PoIs not accessed = $poisNotUsed "
+    printWriter.flush()
+    printWriter.close()
+
   }
 }

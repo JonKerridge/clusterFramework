@@ -16,8 +16,8 @@ class ParseRecord implements Serializable {
   //List <List <String>> workDataParameters   //list of parameters used in work data constructor version 2
   List <List <String>> workParameters  // a list of parameters in their String representation (work only)
   List <List <String>> emitParameters // list of list of parameters used by each Emitter process constructor
-  String outFileName  // base name of file to which collected objects are written, multiples differentiated by WorkerID
 //  String finaliseNameString  // used in collect type only
+  List<List<String>> classParameters  // used in collect class only
   List <List <String>> collectParameters
   // list of list of collectParameters used by each collect method
   List <List <String>> finaliseParameters
@@ -31,6 +31,7 @@ class ParseRecord implements Serializable {
     workParameters = []
     emitParameters = []
     sourceDataFileNames= []
+    classParameters = []
     collectParameters = []
     finaliseParameters = []
     allocatedNodeIPs = []
@@ -44,9 +45,9 @@ class ParseRecord implements Serializable {
         "\n\temitParams= $emitParameters" +
         "\n\tsource data files = $sourceDataFileNames" +
         "\n\twork method= $workMethodName, work params=$workParameters, data file = $workDataFileName, " +
-        "\n\tcollect params= $collectParameters," +
-        "\n\tfinalise params= $finaliseParameters," +
-        "\n\toutFile= $outFileName," +
+        "\n\tcollect class params= $classParameters," +
+        "\n\tcollect method params= $collectParameters," +
+        "\n\tfinalise method params= $finaliseParameters," +
         "\n\tallocIps= $allocatedNodeIPs"
     return s
   }

@@ -47,7 +47,8 @@ class AreaData implements  EmitInterface<AreaData> {
     adjacentPoI = []
     int dataMax = (workData as WorkDataInterface).getWorkDataSize()
     for ( i in 0 ..< dataMax){
-      Location poi = (workData as WorkDataInterface).getNextWorkData(i) as Location
+      List poiData = workData.getFilteredWorkData(i, null)
+      Location poi = poiData[1]
       double distance = areaLocation.euclideanDistance(poi)
       if (distance <= testDistance) adjacentPoI << poi
     }
@@ -58,7 +59,8 @@ class AreaData implements  EmitInterface<AreaData> {
     distant = []
     int dataMax = (workData as WorkDataInterface).getWorkDataSize()
     for ( i in 0 ..< dataMax){
-      Location poi = (workData as WorkDataInterface).getNextWorkData(i) as Location
+      List poiData = workData.getFilteredWorkData(i, null)
+      Location poi = poiData[1]
       double distance = areaLocation.euclideanDistance(poi)
       if (distance <= testDistance) distant << poi
     }
