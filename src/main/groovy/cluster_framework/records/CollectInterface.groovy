@@ -2,7 +2,11 @@ package cluster_framework.records
 /**
  * The interface used by Collector processes in the Collect Cluster
  * @param <T>  the class definition of the data object processed by this application,
- * usually the same as that defined in the EmitInterface, which will be processed in the Collect phase
+ * usually the same as that defined in the EmitInterface, which will be processed in the Collect phase.
+ *
+ * The class constructor can be passed a List of parameters using the the -p option.
+ * A typical use of one of the parameters would be to pass the name of a file to which the
+ * data input by a Collect process could be written to a file, using a mechanism defined by the user.
  */
 interface CollectInterface <T> {
   /**

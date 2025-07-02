@@ -26,7 +26,7 @@ props.load(propsFile.newDataInputStream())
 
 repositories {
   mavenCentral()
-  mavenLocal()  // needed to load groovy_jcsp.1.1.9
+  mavenLocal()
   maven { // to download the jonkerridge.groovy_jcsp library
     name = "GitHubPackages"
     url = "https://maven.pkg.github.com/JonKerridge/groovyJCSP"

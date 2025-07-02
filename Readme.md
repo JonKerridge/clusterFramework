@@ -32,7 +32,7 @@ The following is the DSL for a simple system with no source data or worker data 
     version 2.0.3
     emit -nodes 1 -workers 2 -p int,int!0,100!100,200
     work -n 1 -w 4 -m updateMethod -p int!500
-    collect -n 1 -w 1 -f Test3Results
+    collect -n 1 -w 1 -p String!Test3Results
 
 
 There is 1 emit node using 2 workers (or cores).  The constructor for the Emit object 
@@ -44,15 +44,16 @@ value is passed to all the workers.
 All parameters, in all cases,
 are passed as elements of a List so that any number and type of parameters can be passed as required. 
 
-The collect cluster comprises a single node with one worker (core) process.  All the data processed by the 
-application will be saved in a file called *Test3Results*.
+The collect cluster comprises a single node with one worker (core) process.  It is assumed that the collected 
+data will be saved to the file Test3Results, using a mechanism supplied by the user in the class that implements
+the CollectInterface.
 
 The following is the DSL specification for an application that uses both source and work data files.
 
     version 2.0.3
     emit -nodes 1 -workers 1  -f ./data/areas25000.loc
     work -n 1 -w 4 -m distance -p double!3.0 -f ./data/pois5000.loc
-    collect -n 1 -w 1 -f ./data/LTest141Results
+    collect -n 1 -w 1 -p String!./data/LTest141Results
 
 
 Each cluster comprises a single node.  The emit node will get its data from the file *./data/areas25000.loc*. 
@@ -91,9 +92,9 @@ The *sourceData* parameter will be passed as *null* if no source data file is us
 The *CollectInterface* is used by the collect cluster processes and the type *T* is the class that
 is emitted from the emit cluster.  The *collate* method is used to process incoming data objects to
 create some local transitory collation of the results.  The *finalise* method is used to present the 
-collated transitory results directly to the user in terminal output.  The DSL -f parameter specifies
-a file into which all the received data objects will be stored for post-processing by another application.
-In both cases the *List params* is obtained from the DSL specification.
+collated transitory results directly to the user in terminal output.  The DSL -p parameter specifies
+the parameters that are to be passed to the class constructor..
+In all cases the *List params* is obtained from the DSL specification.
 
 #### SourceDataInterface
 
@@ -111,16 +112,17 @@ source data file specified in the DSL specification.
 #### WorkDataInterface
 
     interface WorkDataInterface <T> {
-    T getNextWorkData(int index)
+    T getFilteredWorkData(int index, List filterValues)
     int getWorkDataSize()
     }
 
 A worker node reads a file of data that can be accessed for reading only by all the worker processes in that node as an iterable collection.
 The number of elements in the collection can be obtained using the method *getWorkDataSize*
 The constructor contained within a class implementing this interface will be passed the required file name.
-The type *T* is the type of the data that will be returned by the method *getNextWorkData* at the specified subscript *index*.
-It is up to the user to decide where and if checking of the iterator bound values is undertaken. The method *getNextWorkData*
-may return *null* tyo indicate the end of the work data collection if required.
+The type *T* is the type of the data that will be returned by the method *getFilteredWorkData* starting at the specified subscript *index*.
+Items not satisfied by the *filterValues* will be skipped until a file record is found that satisfies the filter values or the end of data is found.
+It is up to the user to decide where and if checking of the iterator bound values is undertaken. The method *getFilteredWorkData*
+may return *null* to indicate the end of the work data collection if required.
 
 ### Using the Framework
 
@@ -152,7 +154,7 @@ shows how a  DSL specification is transformed into a call of HostRun.  The appli
     emit -nodes 1 -workers 1  -f ./data/areas1000.loc
     work -n 1 -w 1 -m distance -p double!3.0 -f ./data/pois250.loc
     work -n 1 -w 1 -m adjacent -p double!6.0 -f ./data/pois250.loc
-    collect -n 1 -w 1 -f ./data/Test1111Results
+    collect -n 1 -w 1 -p String!./data/Test1111Results
 
 The file *./data/areas1000.loc* is used to create a class of type *AreaLocales* for source data.
 The file *./data/pois250.loc* is used to create a class of type *PoILocales* for work data.
@@ -258,7 +260,7 @@ https://github.com/JonKerridge/clusterFramework
 
 The package identity is
 
-jonkerridge:cluster_framework:2.0.3
+jonkerridge:cluster_framework:2.0.4
 
 An example of the use of the library is also available at 
 
