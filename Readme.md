@@ -132,7 +132,7 @@ addresses of the form 127.0.0.x.  Finally, the architecture can be run on a netw
 change to the application code, but by simply the manner in which the code is run.  On a PC cluster by using *Remote Desktop* and
 on an HPC by using *SLURM* batch files.  To aid in this *jar* files are provided to run a host node and the other nodes.
 
-#### Parsing a DSL file
+### Parsing a DSL file
 
 A parser is provided that takes a DSL specification, with the extension *.clic*, and transforms it into
 an object file with the extension *.clicstruct*. This can be input into a host node from which the rest
@@ -140,7 +140,72 @@ of the application architecture is created, with no user intervention.  The resu
 structure has a formal proof of correctness, meaning that no errors will be introduced as a result of the
 parallelisation of the application.
 
-#### RunHost.jar
+### DSL options
+A typical DSL specification comprises a number of lines that appear in a specific order as shown below.
+
+    version 2.0.4
+    emit -nodes 1 -workers 1  -file ./data/areas25000.loc
+    work -n 1 -w 4 -method distance -p double!3.0 -f ./data/pois5000.loc
+    work -n 1 -w 4 -m adjacent -p double,double!3.2,6.1 -f ./data/pois5000.loc
+    collect -n 1 -w 1 -p String!./data/X4Results
+
+The first line is always the *version* specification.  This must match the version of the software being used.
+The second line always specifies the emit cluster definition.
+The third and any subsequent lines specify the work cluster in the order they are to be applied to the data.
+The last line always specifies the collect cluster.
+
+Some of the specification options are common to all the specifications.
+They are all introduced  with a - (minus) character and take the form used in a command line interface.
+
+n(odes) specifies the number of nodes (workstations) in a cluster
+
+w(orkers) specifies the number of worker processes (cores) in each node in a cluster
+
+f(ile) specifies a file name, several file names may be specified separated by a comma
+
+m(ethod) specifies the name of a method to be used in a work cluster
+
+p specifies a set of parameter values.  These take the form of a string of values separated by !
+>The first string comprises a comma separated string of parameter types (int, float, double, long, String, boolean), one per required parameter value.
+>Subsequent strings comprise the values to be passed as parameters.  The n'th value must correspond in type to the n'th parameter type
+>The use of parameters varies depending on the cluster being specified.
+
+cp specifies any parameters for the *collate* method in the *CollectInterface*
+
+fp specifies any parameters for the *finalise* method in the *CollectInterface*
+
+Additionally, the IP-addresses to which nodes in an application are to be allocated can be specified.  In this case
+all the node IP-addresses must be specified for all the clusters.  The cluster IP-addresses can be placed anywhere in the
+specification.  A check is made at application load time that sufficent nodes have commenced and that all the
+required IP-addresses are available.
+
+#### emit specification
+
+-p used to specify parameters for the emit class constructor.  There must be *nodes* x *workers* parameter value strings.
+
+-f used to specify file names that hold source data files. There must be *nodes* x *workers* filenames
+
+#### work specification
+
+-m the name of the method to be used in this cluster
+
+-p a parameter string which has the type string and ONLY one set of parameter values,
+all the workers in the cluster have the same parameter values
+
+-f a single file name giving the name of the file holding the work data, all nodes have the same file
+
+#### collect specification
+
+-p a parameter string which has the type string and *nodes* x *workers* sets of parameter values, one set per worker,
+each worker in the cluster has different parameter values
+
+-cp a parameter string which has the type string and *nodes* x *workers* sets of parameter values, one set per worker,
+each worker in the cluster has different parameter values
+
+-fp a parameter string which has the type string and *nodes* x *workers* sets of parameter values, one set per worker,
+each worker in the cluster has different parameter values
+
+### RunHost.jar
 
 This invokes a code called *HostRun* which has a single method called *invoke()*. The following example
 shows how a  DSL specification is transformed into a call of HostRun.  The application has two work cluster
